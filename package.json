@@ -1,0 +1,12 @@
+{
+  "name": "gulp-iz-preprocessor",
+  "version": "1.0.0",
+  "description": "Cooment-based preprocessor.",
+  "main": "index.js",
+  "author": "itozyun",
+  "license": "MIT",
+  "dependencies": {
+    "gulp-util": "^3.0.8",
+    "through2": "^3.0.1"
+  }
+}
