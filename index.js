@@ -2,8 +2,9 @@
  * https://qiita.com/morou/items/1297d5dd379ef013d46c
  *   gulpプラグインの基本構造（プラグイン開発者向け）
  */
-const gutil   = require( 'gulp-util' ),
-      through = require( 'through2'  );
+const PluginError = require( 'plugin-error' ),
+      Vinyl       = require( 'vinyl'        ),
+      through     = require( 'through2'     );
 
 /**
  * tasks : [ { imports [ "mobileLayout", "contactForm" ], dir : "css/mobile", name : "buildMobile" } ], fileType : "scss", log : true
@@ -17,7 +18,7 @@ module.exports = function( options ){
           TASK_LIST      = _options.tasks || [ {} ];
 
     if( !TGT_FILE_TYPE ){
-        this.emit( 'error', new gutil.PluginError( 'gulp-iz-preprocessor', 'No .fileType!' ) );
+        this.emit( 'error', new PluginError( 'gulp-iz-preprocessor', 'No .fileType!' ) );
     };
 
     function transform( file, encoding, callback ){
@@ -26,7 +27,7 @@ module.exports = function( options ){
             return callback();
         };
         if( file.isStream() ){
-            this.emit( 'error', new gutil.PluginError( 'gulp-iz-preprocessor', 'Streaming not supported' ) );
+            this.emit( 'error', new PluginError( 'gulp-iz-preprocessor', 'Streaming not supported' ) );
             return callback();
         };
         if( file.extname !== '.' + TGT_FILE_TYPE ){
@@ -57,7 +58,7 @@ module.exports = function( options ){
                     totalTargets = buildTargets.length;
             } catch( o_O ){
                 let info = globalLineNumberToLocal( o_O.lineAt );
-                this.emit( 'error', new gutil.PluginError( 'gulp-iz-preprocessor', o_O.message + '\n >> file:' + info.name + ' line at ' + info.lineAt + '. range:' + o_O.range ) );
+                this.emit( 'error', new PluginError( 'gulp-iz-preprocessor', o_O.message + '\n >> file:' + info.name + ' line at ' + info.lineAt + '. range:' + o_O.range ) );
                 return callback();
             };
 
@@ -66,7 +67,7 @@ module.exports = function( options ){
                 SHOW_LOG && console.log( '[' + taskName + ']' + ( j + 1 ) + '/' + totalTargets + ':[' + path + ']' );
 
                 text = processor.preCompile( TGT_TEXT_LINES, buildTarget ).join( '\n' );
-                this.push(new gutil.File({
+                this.push(new Vinyl({
                     base     : '/',
                     path     : path,
                     contents : Buffer.from( text )

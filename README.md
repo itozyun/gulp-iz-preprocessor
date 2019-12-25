@@ -1,6 +1,6 @@
 # gulp-iz-preprocessor
 
-Cooment-based preprocessor.
+Comment-based preprocessor.
 
 ## Install
 
@@ -8,7 +8,7 @@ Cooment-based preprocessor.
 npm install gulp-iz-preprocessor --save-dev
 ~~~
 
-## Overview of Cooment-based preprocessor
+## Overview of Comment-based preprocessor
 
 1. Build for each targets
 2. Definition of importable and import.
