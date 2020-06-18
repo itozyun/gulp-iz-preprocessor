@@ -210,12 +210,14 @@ gulp.task('css', function(){
 
 ### Task object
 
-| Name      | Type             | Description             | Optional |
-|:----------|:-----------------|:------------------------|:---------|
-| `name`    | String           | Task name for log       | v        |
-| `imports` | Array.\<String\> | `[ "Ajax" ]`            | v        |
-| `dir`     | String           | Output file directory   | v(*1)    |
-| `prefix`  | String           | Output file name prefix | v(*1)    |
+| Name        | Type             | Description               | Optional |
+|:------------|:-----------------|:--------------------------|:---------|
+| `name`      | String           | Task name for log         | v        |
+| `targets`   | Array.\<String\> | `[ "mobile" ]`            | v        |
+| `imports`   | Array.\<String\> | `[ "Ajax" ]`              | v        |
+| `dir`       | String           | Output file directory     | v(*1)    |
+| `prefix`    | String           | Output file name prefix   | v(*1)    |
+| `importFor` | Object           | `{ mobile : [ "Ajax" ] }` | v        |
 
 1. When registering two or more tasks, dir or prefix must be specified. If not specified, later tasks will overwrite earlier tasks. Only files for later tasks are output!
 

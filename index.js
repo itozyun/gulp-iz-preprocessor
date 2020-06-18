@@ -44,6 +44,7 @@ module.exports = function( options ){
             SRC_FILE_MAP[ file.path ] = textLines.length;
             TGT_TEXT_LINES.push.apply( TGT_TEXT_LINES, textLines );
         };
+        SHOW_LOG && console.log( '[' + TGT_FILE_TYPE + '] ' + file.basename + ' ' + textLines.length + 'lines.' );
         callback();
     };
 
@@ -54,7 +55,7 @@ module.exports = function( options ){
         for( let i = 0, task, taskName; task = TASK_LIST[ i ]; ++i ){
             taskName = task.name || TGT_FILE_TYPE;
             try {
-                var buildTargets = processor.collectExComments( TGT_TEXT_LINES, task.imports ),
+                var buildTargets = processor.collectExComments( TGT_TEXT_LINES, task.imports, SHOW_LOG ),
                     totalTargets = buildTargets.length;
             } catch( o_O ){
                 let info = globalLineNumberToLocal( o_O.lineAt );
@@ -64,9 +65,13 @@ module.exports = function( options ){
 
             for( let j = 0, path, text; buildTarget = buildTargets.shift() ; ++j ){
                 path = '/' + normalizationPath( task.dir ) + '/' + normalizationPath( task.prefix ) + buildTarget + '.' + TGT_FILE_TYPE;
+                if( task.targets && task.targets.indexof( buildTarget ) === -1 ){
+                    SHOW_LOG && console.log( '[' + taskName + ']' + ( j + 1 ) + '/' + totalTargets + ':[' + path + '] skiped.' );
+                    continue;
+                };
                 SHOW_LOG && console.log( '[' + taskName + ']' + ( j + 1 ) + '/' + totalTargets + ':[' + path + ']' );
 
-                text = processor.preCompile( TGT_TEXT_LINES, buildTarget ).join( '\n' );
+                text = processor.preCompile( TGT_TEXT_LINES, buildTarget, ( task.importFor || {} )[ buildTarget ], SHOW_LOG ).join( '\n' );
                 this.push(new Vinyl({
                     base     : '/',
                     path     : path,

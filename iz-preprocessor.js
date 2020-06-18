@@ -10,7 +10,8 @@
         // Browser globals
         root[ 'izPreprocessor' ] = factory;
     }
-})(this, function () {
+})(this, function(){
+var SHOW_LOG;
 
 function createClass( Constructor, members, classMembers ){
     var k;
@@ -38,7 +39,7 @@ function RangeError( msg, lineAt, range ){
     this.message = msg || '';
     this.lineAt  = lineAt || 0;
     this.range   = range || '';
-}
+};
 
 /*--------------------------------------------------
  * ItemBase
@@ -228,6 +229,19 @@ var Option = Base.inherits(
 
             opt._imported = true;
             return opt;
+        },
+        delete : function( tag ){
+            var i = 0, l = Option.LIST.length, opt;
+
+            for( ; i < l; ++i ){
+                opt = Option.LIST[ i ];
+                if( opt.tag === tag ){
+                    opt._imported = false;
+                    return;
+                };
+            };
+
+            throw new Error( 'Option:' + tag + ' was not found!' );
         }
     }
 );
@@ -413,7 +427,6 @@ var ReplaceRange = Range.inherits(
                     last = parseConditionName( txt, line, pos, last );
                     if( !last ){
                         // error
-                        console.log( 'Range definition error. line at', line );
                         throw new RangeError( 'Range definition error.', line, sourceText );
                     };
                     break;
@@ -423,7 +436,6 @@ var ReplaceRange = Range.inherits(
                     obj = parseConditionName( txt, line, pos );
                     if( !last.eq( obj ) ){
                         // error
-                        console.log( 'Mismatch at the end of Range.', line, ' 現在のRange=', ' start=', last.start );
                         throw new RangeError( 'Mismatch at the end of Range.', line, last.toString() );
                     };
                     last.end = line;
@@ -441,12 +453,10 @@ var ReplaceRange = Range.inherits(
                 case '//_>' :
                     if( last.constructor !== ReplaceRange ){
                         // error
-                        console.log( 'Mismatch at the end of Range.line at ', line );
                         throw new RangeError( 'Mismatch at the end of Range.', line, last.toString() );
                     };
                     if( last.dir !== dir || last.depth !== depth ){
                         // error
-                        console.log( 'Mismatch at the end of Range. line at ', line );
                         throw new RangeError( 'Mismatch at the end of Range.', line, last.toString() );
                     };
                     last.end = line;
@@ -456,7 +466,6 @@ var ReplaceRange = Range.inherits(
         };
 
         if( last !== topRange ){
-            console.log( 'No termination of Range. line at ', last.start, textLines[ last.start ] );
             throw new RangeError( 'No termination of Range.', last.start, last.toString() );
         } else {
             return last;
@@ -526,8 +535,8 @@ var ReplaceRange = Range.inherits(
                     obj = Option.create( Option.DELETE );
                     break;
                 default :
-                    console.log( tag.charAt( 0 ), ':', tag.charCodeAt( 0 ) );
-                    console.log( original + '\n' + title + '\n' + summary + '\n' + depends );
+                    SHOW_LOG && console.log( tag.charAt( 0 ), ':', tag.charCodeAt( 0 ) );
+                    SHOW_LOG && console.log( original + '\n' + title + '\n' + summary + '\n' + depends );
             };
             tags[ i ] = obj;
         };
@@ -602,8 +611,9 @@ var ReplaceRange = Range.inherits(
     };
 
 return {
-    collectExComments : function( textLines, enabledOptions ){
-        console.log( 'iz-preprosessor start! ---' );
+    collectExComments : function( textLines, enabledOptions, _SHOW_LOG ){
+        SHOW_LOG = _SHOW_LOG;
+        SHOW_LOG && console.log( 'iz-preprosessor start! ---' );
 
         Target.LIST.length = Group.LIST.length = Option.LIST.length =
         ReplaceRange.LIST.length = Range.LIST.length = 0;
@@ -615,29 +625,29 @@ return {
         if( enabledOptions && enabledOptions.push ){
             for( i = 0, l = enabledOptions.length; i < l; ++i ){
                 Option.imports( enabledOptions[ i ] );
-                console.log( enabledOptions[ i ] );
+                SHOW_LOG && console.log( enabledOptions[ i ] );
             };
         };
 
          if( range ){
-            console.log('@ target : ', Target.LIST.length );
-            console.log('# group  : ', Group.LIST.length );
-            console.log('+ option : ', Option.LIST.length );
+            SHOW_LOG && console.log('@ target : ', Target.LIST.length );
+            SHOW_LOG && console.log('# group  : ', Group.LIST.length );
+            SHOW_LOG && console.log('+ option : ', Option.LIST.length );
             for( i = 0, l = Option.LIST.length, ary1 = [], ary2 = []; i < l; ++i ){
                 item = Option.LIST[ i ];
                 item.isImported() ? ary1.push( item.tag ) : ary2.push( item.tag );
             };
-            console.log( '.. enabled  options : ', ary1.join( ',' ) );
-            console.log( '.. disabled options : ', ary2.join( ',' ) );
+            SHOW_LOG && console.log( '.. enabled  options : ', ary1.join( ',' ) );
+            SHOW_LOG && console.log( '.. disabled options : ', ary2.join( ',' ) );
 
-            console.log('Range         :', Range.LIST.length - 1 );
-            console.log('Replace range :', ReplaceRange.LIST.length );
+            SHOW_LOG && console.log('Range         :', Range.LIST.length - 1 );
+            SHOW_LOG && console.log('Replace range :', ReplaceRange.LIST.length );
 
             for( i = 1, ary3 = []; i < Range.LIST.length; ++i ){
                 item = Range.LIST[ i ];
-                //console.log( item.start + '-' + item.end );
+                //SHOW_LOG && console.log( item.start + '-' + item.end );
             };
-            //console.log( ary3.join( ',' ) );
+            //SHOW_LOG && console.log( ary3.join( ',' ) );
 
             for( i = 0, l = Target.LIST.length; i < l; ++i ){
                 targets[ i ] = Target.LIST[ i ].tag;
@@ -647,14 +657,31 @@ return {
          };
     },
 
-    preCompile : function( textLines, target ){
-        var i = 0, l = Target.LIST.length, ary = [];
+    preCompile : function( textLines, target, enabledOptions, _SHOW_LOG ){
+        var i = 0, l = Target.LIST.length, ary = [], result;
+
+        SHOW_LOG = _SHOW_LOG;
 
         for( ; i < l; ++i ){
             if( target === Target.LIST[ i ].tag ){
                 Target.current = Target.LIST[ i ];
-                for( i = 0, l = textLines.length; i < l; ++i ) ary[ i ] = textLines[ i ];
-                return buildText( ary );
+                for( i = 0, l = textLines.length; i < l; ++i ){
+                    ary[ i ] = textLines[ i ];
+                };
+
+                if( enabledOptions && enabledOptions.push ){
+                    for( i = 0, l = enabledOptions.length; i < l; ++i ){
+                        Option.imports( enabledOptions[ i ] );
+                        SHOW_LOG && console.log( enabledOptions[ i ] );
+                    };
+                };
+                result = buildText( ary );
+                if( enabledOptions && enabledOptions.push ){
+                    for( i = 0, l = enabledOptions.length; i < l; ++i ){
+                        Option.delete( enabledOptions[ i ] );
+                    };
+                };
+                return result;
             };
         };
     }
