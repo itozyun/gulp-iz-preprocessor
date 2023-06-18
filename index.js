@@ -64,7 +64,7 @@ module.exports = function( options ){
             };
 
             for( let j = 0, path, text; buildTarget = buildTargets.shift() ; ++j ){
-                path = '/' + normalizationPath( task.dir ) + '/' + normalizationPath( task.prefix ) + buildTarget + '.' + TGT_FILE_TYPE;
+                path = './' + normalizationPath( task.dir ) + '/' + normalizationPath( task.prefix ) + buildTarget + '.' + TGT_FILE_TYPE;
                 if( task.targets && task.targets.indexof( buildTarget ) === -1 ){
                     SHOW_LOG && console.log( '[' + taskName + ']' + ( j + 1 ) + '/' + totalTargets + ':[' + path + '] skiped.' );
                     continue;
@@ -73,7 +73,7 @@ module.exports = function( options ){
 
                 text = processor.preCompile( TGT_TEXT_LINES, buildTarget, ( task.importFor || {} )[ buildTarget ], SHOW_LOG ).join( '\n' );
                 this.push(new Vinyl({
-                    base     : '/',
+                    // base     : './',
                     path     : path,
                     contents : Buffer.from( text )
                 }));
